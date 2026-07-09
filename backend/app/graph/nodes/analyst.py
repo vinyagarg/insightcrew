@@ -9,9 +9,12 @@ def analyst_node(state):
         evidence_text = "\n".join(
             f"[{s['id']}] {s['title']}: {s['snippet']}" for s in sources
         )
-        prompt = f"""Using ONLY the evidence below, write a short paragraph 
-answering this question. Cite sources inline using [id] markers matching the 
-evidence. If evidence is insufficient, say so explicitly.
+        prompt = f"""Using ONLY the evidence below, write a clear, simple answer to this 
+question in plain everyday language — as if explaining it to a smart friend who 
+isn't an expert in this topic. Avoid jargon where possible, use short sentences, 
+and keep it to 3-4 sentences maximum. Cite sources inline using [id] markers 
+matching the evidence, placed naturally at the end of the relevant sentence. If 
+evidence is insufficient, say so in one plain sentence.
 
 Question: {q}
 
