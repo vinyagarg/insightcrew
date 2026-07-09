@@ -7,3 +7,4 @@ duckduckgo-search
 chromadb
 python-dotenv
 pydantic
+tavily-python
