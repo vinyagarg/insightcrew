@@ -121,7 +121,7 @@ export default function ReportPage({
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               {/* Main Content */}
               <div className="lg:col-span-3 space-y-8">
-                <ReportHeader query={query} />
+                <ReportHeader query={query} sections={report.sections} />
 
                 {/* Sections */}
                 <div className="space-y-12">
