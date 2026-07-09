@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+langgraph
+langchain
+groq
+duckduckgo-search
+chromadb
+python-dotenv
+pydantic
