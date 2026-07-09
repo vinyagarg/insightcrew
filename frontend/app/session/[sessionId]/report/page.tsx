@@ -1,24 +1,12 @@
 'use client'
 
 import { useEffect, useState, use } from 'react'
-import { useRouter } from 'next/navigation'
-import { ReportView } from '@/components/report-view'
-import { SessionSidebar } from '@/components/session-sidebar'
 
-export interface ReportSection {
+interface Section {
   heading: string
   content: string
-  confidence: 'high' | 'medium' | 'low'
-  sources: Array<{
-    id: number
-    title: string
-    url: string
-    snippet: string
-  }>
-}
-
-export interface ReportData {
-  sections: ReportSection[]
+  confidence: string
+  sources: { id: number; title: string; url: string; snippet: string }[]
 }
 
 export default function ReportPage({
@@ -27,76 +15,45 @@ export default function ReportPage({
   params: Promise<{ sessionId: string }>
 }) {
   const { sessionId } = use(params)
-  const router = useRouter()
-  const [report, setReport] = useState<ReportData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [sections, setSections] = useState<Section[]>([])
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchReport = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL
-        if (!apiUrl) {
-          throw new Error('API URL not configured')
-        }
-
-        const response = await fetch(
-          `${apiUrl}/api/research/${sessionId}/report`
-        )
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch report: ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        setReport(data)
+        const res = await fetch(`${apiUrl}/api/research/${sessionId}/report`)
+        const data = await res.json()
+        setSections(data.sections || [])
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load report'
-        setError(message)
+        setError(err instanceof Error ? err.message : 'Failed to load report')
       } finally {
-        setIsLoading(false)
+        setLoading(false)
       }
     }
-
     fetchReport()
   }, [sessionId])
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 rounded-full border-2 border-accent border-t-transparent animate-spin mx-auto mb-3" />
-          <p className="text-muted-foreground">Loading report...</p>
-        </div>
-      </div>
-    )
+  if (loading) {
+    return <div style={{ minHeight: '100vh', background: '#0a0e1a', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading report...</div>
   }
 
-  if (error || !report) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <div className="max-w-md w-full p-6 rounded-lg bg-card border border-border">
-          <h2 className="text-lg font-bold text-foreground mb-2">
-            {error ? 'Error' : 'No Report'}
-          </h2>
-          <p className="text-muted-foreground mb-4">
-            {error || 'No report data available'}
-          </p>
-          <button
-            onClick={() => router.push('/')}
-            className="px-4 py-2 rounded-lg bg-accent text-background font-medium hover:bg-accent/90 transition-colors"
-          >
-            Return Home
-          </button>
-        </div>
-      </div>
-    )
+  if (error) {
+    return <div style={{ minHeight: '100vh', background: '#0a0e1a', color: 'red', padding: '2rem' }}>Error: {error}</div>
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <SessionSidebar sessionId={sessionId} />
-      <ReportView report={report} />
+    <div style={{ minHeight: '100vh', background: '#0a0e1a', color: 'white', padding: '2rem', fontFamily: 'sans-serif' }}>
+      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '2rem' }}>Research Report</h1>
+      {sections.length === 0 && <p>No sections found.</p>}
+      {sections.map((section, idx) => (
+        <div key={idx} style={{ background: '#151b2e', padding: '1.5rem', marginBottom: '1rem', borderRadius: '8px', maxWidth: '800px' }}>
+          <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{section.heading}</h2>
+          <p style={{ color: '#ccc', lineHeight: '1.6' }}>{section.content}</p>
+          <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#888' }}>Confidence: {section.confidence}</p>
+        </div>
+      ))}
     </div>
   )
 }
