@@ -1,59 +1,157 @@
 'use client'
 
-import { useEffect, useState, use } from 'react'
-
-interface Section {
-  heading: string
-  content: string
-  confidence: string
-  sources: { id: number; title: string; url: string; snippet: string }[]
-}
+import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+import Header from '@/components/Header'
+import ReportHeader from '@/components/ReportHeader'
+import ReportTOC from '@/components/ReportTOC'
+import ReportSection from '@/components/ReportSection'
+import SourcesList from '@/components/SourcesList'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/useAuth'
+import { useReport } from '@/hooks/useReport'
+import { useResearchHistory } from '@/hooks/useResearchHistory'
+import { ArrowLeft } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export default function ReportPage({
   params,
 }: {
   params: Promise<{ sessionId: string }>
 }) {
-  const { sessionId } = use(params)
-  const [sections, setSections] = useState<Section[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+  const { userName, logout } = useAuth()
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const { report, isLoading, error } = useReport(sessionId || '')
+  const { history } = useResearchHistory()
 
+  // Resolve params
   useEffect(() => {
-    const fetchReport = async () => {
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL
-        const res = await fetch(`${apiUrl}/api/research/${sessionId}/report`)
-        const data = await res.json()
-        setSections(data.sections || [])
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load report')
-      } finally {
-        setLoading(false)
+    params.then((p) => setSessionId(p.sessionId))
+  }, [params])
+
+  // Get query from history
+  useEffect(() => {
+    if (sessionId && history.length > 0) {
+      const session = history.find((s) => s.sessionId === sessionId)
+      if (session) {
+        setQuery(session.query)
       }
     }
-    fetchReport()
-  }, [sessionId])
+  }, [sessionId, history])
 
-  if (loading) {
-    return <div style={{ minHeight: '100vh', background: '#0a0e1a', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading report...</div>
-  }
-
-  if (error) {
-    return <div style={{ minHeight: '100vh', background: '#0a0e1a', color: 'red', padding: '2rem' }}>Error: {error}</div>
+  if (!sessionId) {
+    return null
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0e1a', color: 'white', padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '2rem' }}>Research Report</h1>
-      {sections.length === 0 && <p>No sections found.</p>}
-      {sections.map((section, idx) => (
-        <div key={idx} style={{ background: '#151b2e', padding: '1.5rem', marginBottom: '1rem', borderRadius: '8px', maxWidth: '800px' }}>
-          <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{section.heading}</h2>
-          <p style={{ color: '#ccc', lineHeight: '1.6' }}>{section.content}</p>
-          <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#888' }}>Confidence: {section.confidence}</p>
+    <>
+      <Header userName={userName} onLogout={logout} />
+      <main className="min-h-screen bg-background">
+        <div className="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+          {/* Back button */}
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mb-8"
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/')}
+              className="gap-2"
+            >
+              <ArrowLeft size={16} />
+              Back to Home
+            </Button>
+          </motion.div>
+
+          {/* Loading State */}
+          {isLoading && !report && (
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <Skeleton className="h-8 w-2/3" />
+                <Skeleton className="h-20 w-full" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-9 w-24" />
+                  <Skeleton className="h-9 w-24" />
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="h-8 w-1/2" />
+                    <Skeleton className="h-32 w-full" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {!isLoading && error && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4 p-6 rounded-lg bg-destructive/10 border border-destructive/20"
+            >
+              <div>
+                <p className="text-lg font-semibold text-destructive">
+                  Failed to load report
+                </p>
+                <p className="text-sm text-destructive/80 mt-2">
+                  {error}
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/')}
+              >
+                Go Home
+              </Button>
+            </motion.div>
+          )}
+
+          {/* Report Content */}
+          {report && (
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              {/* Main Content */}
+              <div className="lg:col-span-3 space-y-8">
+                <ReportHeader query={query} />
+
+                {/* Sections */}
+                <div className="space-y-12">
+                  {report.sections.map((section, idx) => (
+                    <ReportSection
+                      key={idx}
+                      section={section}
+                      sectionIndex={idx}
+                    />
+                  ))}
+                </div>
+
+                {/* Sources */}
+                {report.sections.length > 0 && (
+                  <SourcesList
+                    sources={report.sections.flatMap((s) => s.sources)}
+                  />
+                )}
+              </div>
+
+              {/* TOC Sidebar */}
+              {report.sections.length > 0 && (
+                <div className="lg:col-span-1">
+                  <ReportTOC sections={report.sections} />
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      ))}
-    </div>
+      </main>
+    </>
   )
 }

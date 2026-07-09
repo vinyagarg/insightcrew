@@ -1,14 +1,23 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { Fraunces, Inter } from 'next/font/google'
 import './globals.css'
+import Providers from './providers'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
-const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' })
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  weight: ['600', '700'],
+  variable: '--font-display',
+})
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-body',
+})
 
 export const metadata: Metadata = {
-  title: 'InsightCrew - Multi-Agent Research Assistant',
-  description: 'AI-powered research assistant powered by autonomous agents',
+  title: 'InsightCrew',
+  description: 'Research-powered AI assistant for deep knowledge discovery',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -32,7 +41,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   colorScheme: 'dark',
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#0a0e27' },
+    { media: '(prefers-color-scheme: dark)', color: '#0f0a05' },
   ],
 }
 
@@ -42,12 +51,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html
-      lang="en"
-      className={`dark ${inter.variable} ${jetbrainsMono.variable}`}
-    >
-      <body className="antialiased bg-background text-foreground font-sans">
-        {children}
+    <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
+      <body className="bg-background text-foreground antialiased">
+        <Providers>
+          {children}
+        </Providers>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
