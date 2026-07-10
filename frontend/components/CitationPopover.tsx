@@ -61,10 +61,11 @@ export default function CitationPopover({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -8 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 top-full mt-2 w-80 max-w-[90vw] z-50 p-4 rounded-lg shadow-2xl border"
+            className="absolute left-0 top-full mt-2 w-72 sm:w-80 max-w-[85vw] z-50 p-4 rounded-lg shadow-2xl border overflow-hidden"
             style={{
               backgroundColor: 'var(--card, #151a20)',
               borderColor: 'var(--border, #1f3a42)',
+              whiteSpace: 'normal',
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -79,19 +80,19 @@ export default function CitationPopover({
               </button>
             )}
 
-            <div className="space-y-2 pr-4">
-              <p className="text-xs text-muted-foreground">
+            <div className="space-y-2 pr-4 min-w-0">
+              <p className="text-xs text-muted-foreground break-words">
                 Source Number {citationId}
               </p>
-              <p className="text-sm font-semibold text-foreground leading-snug">
+              <p className="text-sm font-semibold text-foreground leading-snug break-words">
                 {title}
               </p>
               {snippet && (
-                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 break-words">
                   {snippet}
                 </p>
               )}
-              <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors pt-1">
+              <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors pt-1 break-words">
                 Visit source
                 <ExternalLink size={12} />
               </a>
