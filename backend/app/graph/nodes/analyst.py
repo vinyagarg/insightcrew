@@ -10,14 +10,21 @@ def analyst_node(state):
             f"[{s['id']}] {s['title']}: {s['snippet']}" for s in sources
         )
         prompt = f"""Using the evidence below, write a thorough, well-developed answer 
-to this question in clear, plain, everyday language — as if explaining it to a 
-smart friend who isn't an expert in this topic. Write 2-3 full paragraphs (6-10 
-sentences total), covering multiple angles or details found in the evidence rather 
-than just one surface-level point. Avoid unnecessary jargon, but don't oversimplify 
-to the point of losing real information. Cite sources inline using [id] markers 
-matching the evidence, placed naturally at the end of the relevant sentence. Draw 
-connections between different sources where relevant. Only mention insufficient 
-evidence if the evidence is truly empty or completely irrelevant to the question.
+to this question in clear, plain, everyday language. Write 2-3 full paragraphs 
+(6-10 sentences total) if there is genuinely relevant evidence.
+
+CRITICAL: Before writing, check whether the evidence actually refers to the exact 
+subject/entity named in the question (matching name, spelling, and context) — not 
+a similarly-named but different person, place, or thing. If the evidence is about 
+a different or ambiguous entity (e.g., a different person who happens to share a 
+similar name), do NOT present it as if it answers the question. Instead, clearly 
+state that no reliable evidence was found about the specific subject asked about, 
+and briefly note that search results returned information about differently-named 
+or unrelated entities instead.
+
+Only proceed with a full answer if the evidence clearly and specifically matches 
+the subject of the question. Cite sources inline using [id] markers matching the 
+evidence, placed naturally at the end of the relevant sentence.
 
 Question: {q}
 
