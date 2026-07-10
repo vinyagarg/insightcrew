@@ -18,17 +18,41 @@ export default function ReportSection({
 }: ReportSectionProps) {
   const [selectedCitation, setSelectedCitation] = useState<number | null>(null)
 
-  // Parse content and find citation markers
-  const parsedContent = section.content
-  const citationRegex = /\[(\d+)\]/g
-  const citationMatches = Array.from(parsedContent.matchAll(citationRegex))
-
-  // Map citation IDs to their sources
-  const citationMap = new Map(
-    section.sources.map((src) => [src.id, src])
-  )
-
+  const citationMap = new Map(section.sources.map((src) => [src.id, src]))
   const confidenceStyle = CONFIDENCE_COLORS[section.confidence]
+
+  // Split into real paragraphs first (on blank lines), fall back to whole content as one paragraph
+  const paragraphs = section.content
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+  const paragraphList = paragraphs.length > 0 ? paragraphs : [section.content]
+
+  const renderParagraph = (paragraph: string, pIdx: number) => {
+    return paragraph.split(/(\[\d+\])/).map((part, idx) => {
+      const match = part.match(/\[(\d+)\]/)
+      if (match) {
+        const citationId = parseInt(match[1]!, 10)
+        const source = citationMap.get(citationId)
+        if (!source) return null
+
+        return (
+          <CitationPopover
+            key={`${sectionIndex}-${pIdx}-${idx}`}
+            citationId={citationId}
+            source={source}
+            isSelected={selectedCitation === citationId}
+            onSelect={() =>
+              setSelectedCitation(
+                selectedCitation === citationId ? null : citationId
+              )
+            }
+          />
+        )
+      }
+      return part ? <span key={`${sectionIndex}-${pIdx}-${idx}`}>{part}</span> : null
+    })
+  }
 
   return (
     <motion.section
@@ -53,32 +77,12 @@ export default function ReportSection({
         </Badge>
       </div>
 
-      {/* Content with inline citations */}
-      <div className="space-y-4 text-base leading-relaxed text-foreground prose-invert max-w-none">
-        {parsedContent.split(/(\[\d+\])/).map((part, idx) => {
-          const match = part.match(/\[(\d+)\]/)
-          if (match) {
-            const citationId = parseInt(match[1]!, 10)
-            const source = citationMap.get(citationId)
-            if (!source) return null
-
-            return (
-              <CitationPopover
-                key={`${sectionIndex}-${idx}`}
-                citationId={citationId}
-                source={source}
-                isSelected={selectedCitation === citationId}
-                onSelect={() =>
-                  setSelectedCitation(
-                    selectedCitation === citationId ? null : citationId
-                  )
-                }
-              />
-            )
-          }
-
-          return part ? <span key={`${sectionIndex}-${idx}`}>{part}</span> : null
-        })}
+      <div className="space-y-4 text-base leading-relaxed text-foreground max-w-none">
+        {paragraphList.map((paragraph, pIdx) => (
+          <p key={pIdx} className="leading-relaxed">
+            {renderParagraph(paragraph, pIdx)}
+          </p>
+        ))}
       </div>
     </motion.section>
   )
