@@ -2,15 +2,26 @@ from dotenv import load_dotenv
 load_dotenv()
 import uuid
 from fastapi import FastAPI
+from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.graph.pipeline import build_pipeline
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
+    allow_origins=[
+        "https://insightcrew-woad.vercel.app",
+        "http://localhost:3000",
+    ],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -18,10 +29,11 @@ pipeline = build_pipeline()
 sessions = {}
 
 class ResearchRequest(BaseModel):
-    query: str
+    query: str = Field(..., min_length=3, max_length=500)
 
 @app.post("/api/research")
-def start_research(req: ResearchRequest):
+@limiter.limit("5/minute")
+def start_research(request: Request, req: ResearchRequest):
     session_id = str(uuid.uuid4())
     sessions[session_id] = {"status": "running", "result": None}
 
