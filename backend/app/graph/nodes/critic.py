@@ -9,9 +9,12 @@ def critic_node(state):
         evidence_text = "\n".join(
             f"[{s['id']}] {s['snippet']}" for s in section["sources"]
         )
-        prompt = f"""Check if every claim in this text is supported by the 
-evidence. Respond ONLY with JSON: {{"confidence": "high"|"medium"|"low", 
-"needs_revision": true|false}}
+        prompt = f"""Evaluate how well this text is supported by the evidence below. 
+Rate confidence as "high" if the main claims are reasonably backed by at least one 
+source, even if minor details lack a citation. Rate "medium" only if a significant 
+portion of the text has no supporting evidence at all. Rate "low" only if the text 
+contradicts the evidence or is almost entirely unsupported. Respond ONLY with JSON: 
+{{"confidence": "high"|"medium"|"low", "needs_revision": true|false}}
 
 Text: {section['content']}
 

@@ -7,7 +7,7 @@ def retriever_node(state):
     evidence = {}
     for i, q in enumerate(state["sub_questions"]):
         try:
-            results = client.search(q, max_results=3)
+            results = client.search(q, max_results=6, search_depth="advanced")
             sources = [
                 {
                     "id": i * 10 + j + 1,
