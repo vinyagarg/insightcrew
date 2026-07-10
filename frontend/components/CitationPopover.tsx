@@ -18,6 +18,14 @@ interface CitationPopoverProps {
   onSelect: () => void
 }
 
+function cleanText(text: string): string {
+  return text
+    .replace(/^#+\s*/gm, '')
+    .replace(/[*_`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 export default function CitationPopover({
   citationId,
   source,
@@ -30,8 +38,8 @@ export default function CitationPopover({
     return <span>[{citationId}]</span>
   }
 
-  const title = source.title || 'Untitled source'
-  const snippet = source.snippet || ''
+  const title = cleanText(source.title || 'Untitled source')
+  const snippet = cleanText(source.snippet || '')
   const url = source.url || '#'
 
   return (
@@ -53,7 +61,7 @@ export default function CitationPopover({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -8 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 top-full mt-2 w-72 z-50 p-4 rounded-lg shadow-2xl border"
+            className="absolute left-0 top-full mt-2 w-80 max-w-[90vw] z-50 p-4 rounded-lg shadow-2xl border"
             style={{
               backgroundColor: 'var(--card, #151a20)',
               borderColor: 'var(--border, #1f3a42)',
@@ -65,25 +73,25 @@ export default function CitationPopover({
               <button
                 type="button"
                 onClick={onSelect}
-                className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
+                className="absolute top-2 right-2 text-muted-foreground hover:text-foreground text-xs"
               >
                 Close
               </button>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-2 pr-4">
               <p className="text-xs text-muted-foreground">
                 Source Number {citationId}
               </p>
-              <p className="text-sm font-semibold text-foreground line-clamp-2">
+              <p className="text-sm font-semibold text-foreground leading-snug">
                 {title}
               </p>
               {snippet && (
-                <p className="text-xs text-muted-foreground line-clamp-3">
+                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
                   {snippet}
                 </p>
               )}
-              <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors">
+              <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors pt-1">
                 Visit source
                 <ExternalLink size={12} />
               </a>
