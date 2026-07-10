@@ -3,7 +3,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import { ExternalLink } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import type { Citation } from '@/hooks/useReport'
 
 interface CitationPopoverProps {
@@ -22,31 +21,33 @@ export default function CitationPopover({
   const [isHovered, setIsHovered] = useState(false)
 
   return (
-    <div className="relative inline-block">
+    <span className="relative inline whitespace-nowrap">
       <motion.button
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={onSelect}
-        className="inline-flex items-center gap-1 px-2 py-1 rounded text-accent hover:bg-accent/10 transition-colors font-medium"
-        whileHover={{ scale: 1.05 }}
+        className="inline-flex items-center gap-1 px-1 rounded text-accent hover:bg-accent/10 transition-colors font-medium align-super text-xs"
         whileTap={{ scale: 0.95 }}
       >
         [{citationId}]
       </motion.button>
 
-      {/* Popover */}
       <AnimatePresence>
         {(isSelected || isHovered) && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: -8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -8 }}
-            transition={{ duration: 0.2 }}
-            className="absolute left-0 mt-2 w-64 z-50 p-3 bg-card border border-border rounded-lg shadow-lg"
+            transition={{ duration: 0.15 }}
+            className="absolute left-0 top-full mt-2 w-72 z-[100] p-4 rounded-lg shadow-2xl border border-border"
+            style={{
+              backgroundColor: 'hsl(var(--card))',
+              opacity: 1,
+              whiteSpace: 'normal',
+            }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            {/* Close button for mobile */}
             {isSelected && (
               <button
                 onClick={onSelect}
@@ -66,7 +67,7 @@ export default function CitationPopover({
               <p className="text-xs text-muted-foreground line-clamp-3">
                 {source.snippet}
               </p>
-              <a
+              
                 href={source.url}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -79,6 +80,6 @@ export default function CitationPopover({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </span>
   )
 }
