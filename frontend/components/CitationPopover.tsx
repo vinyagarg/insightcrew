@@ -63,13 +63,13 @@ export default function CitationPopover({
                 onClick={onSelect}
                 className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
               >
-                ✕
+                Close
               </button>
             )}
 
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">
-                Source #{citationId}
+                Source Number {citationId}
               </p>
               <p className="text-sm font-semibold text-foreground line-clamp-2">
                 {title}
@@ -79,12 +79,7 @@ export default function CitationPopover({
                   {snippet}
                 </p>
               )}
-              
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors"
-              >
+              <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors">
                 Visit source
                 <ExternalLink size={12} />
               </a>
