@@ -53,7 +53,11 @@ export default function CitationPopover({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -8 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 top-full mt-2 w-72 z-50 p-4 rounded-lg shadow-2xl border border-border bg-card"
+            className="absolute left-0 top-full mt-2 w-72 z-50 p-4 rounded-lg shadow-2xl border"
+            style={{
+              backgroundColor: 'var(--card, #151a20)',
+              borderColor: 'var(--border, #1f3a42)',
+            }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
