@@ -3,7 +3,13 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import { ExternalLink } from 'lucide-react'
-import type { Citation } from '@/hooks/useReport'
+
+interface Citation {
+  id: number
+  title: string
+  url: string
+  snippet: string
+}
 
 interface CitationPopoverProps {
   citationId: number
@@ -20,17 +26,25 @@ export default function CitationPopover({
 }: CitationPopoverProps) {
   const [isHovered, setIsHovered] = useState(false)
 
+  if (!source) {
+    return <span>[{citationId}]</span>
+  }
+
+  const title = source.title || 'Untitled source'
+  const snippet = source.snippet || ''
+  const url = source.url || '#'
+
   return (
     <span className="relative inline whitespace-nowrap">
-      <motion.button
+      <button
+        type="button"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={onSelect}
         className="inline-flex items-center gap-1 px-1 rounded text-accent hover:bg-accent/10 transition-colors font-medium align-super text-xs"
-        whileTap={{ scale: 0.95 }}
       >
         [{citationId}]
-      </motion.button>
+      </button>
 
       <AnimatePresence>
         {(isSelected || isHovered) && (
@@ -39,17 +53,13 @@ export default function CitationPopover({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -8 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-0 top-full mt-2 w-72 z-[100] p-4 rounded-lg shadow-2xl border border-border"
-            style={{
-              backgroundColor: 'hsl(var(--card))',
-              opacity: 1,
-              whiteSpace: 'normal',
-            }}
+            className="absolute left-0 top-full mt-2 w-72 z-50 p-4 rounded-lg shadow-2xl border border-border bg-card"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
             {isSelected && (
               <button
+                type="button"
                 onClick={onSelect}
                 className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
               >
@@ -62,13 +72,15 @@ export default function CitationPopover({
                 Source #{citationId}
               </p>
               <p className="text-sm font-semibold text-foreground line-clamp-2">
-                {source.title}
+                {title}
               </p>
-              <p className="text-xs text-muted-foreground line-clamp-3">
-                {source.snippet}
-              </p>
+              {snippet && (
+                <p className="text-xs text-muted-foreground line-clamp-3">
+                  {snippet}
+                </p>
+              )}
               
-                href={source.url}
+                href={url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors"
