@@ -3,6 +3,8 @@ load_dotenv()
 
 import os
 import uuid
+import sqlite3
+import json as json_module
 from fastapi import FastAPI, Request, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -35,7 +37,43 @@ def verify_api_key(x_api_key: str = Header(None)):
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
 pipeline = build_pipeline()
-sessions = {}
+
+DB_PATH = "sessions.db"
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS sessions (
+            session_id TEXT PRIMARY KEY,
+            status TEXT,
+            result TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_db()
+
+def save_session(session_id, status, result=None):
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute(
+        "INSERT OR REPLACE INTO sessions (session_id, status, result) VALUES (?, ?, ?)",
+        (session_id, status, json_module.dumps(result) if result else None)
+    )
+    conn.commit()
+    conn.close()
+
+def get_session(session_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.execute(
+        "SELECT status, result FROM sessions WHERE session_id = ?", (session_id,)
+    )
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    status, result = row
+    return {"status": status, "result": json_module.loads(result) if result else None}
 
 class ResearchRequest(BaseModel):
     query: str = Field(..., min_length=3, max_length=500)
@@ -44,7 +82,7 @@ class ResearchRequest(BaseModel):
 @limiter.limit("5/minute")
 def start_research(request: Request, req: ResearchRequest, _: None = Depends(verify_api_key)):
     session_id = str(uuid.uuid4())
-    sessions[session_id] = {"status": "running", "result": None}
+    save_session(session_id, "running")
 
     final_state = pipeline.invoke({
         "query": req.query,
@@ -55,12 +93,12 @@ def start_research(request: Request, req: ResearchRequest, _: None = Depends(ver
         "final_sections": [],
     })
 
-    sessions[session_id] = {"status": "done", "result": final_state}
+    save_session(session_id, "done", final_state)
     return {"session_id": session_id}
 
 @app.get("/api/research/{session_id}/status")
 def get_status(session_id: str, _: None = Depends(verify_api_key)):
-    session = sessions.get(session_id)
+    session = get_session(session_id)
     if not session:
         return {"status": "error", "stages": []}
 
@@ -74,7 +112,7 @@ def get_status(session_id: str, _: None = Depends(verify_api_key)):
 
 @app.get("/api/research/{session_id}/report")
 def get_report(session_id: str, _: None = Depends(verify_api_key)):
-    session = sessions.get(session_id)
+    session = get_session(session_id)
     if not session or session["status"] != "done":
         return {"sections": []}
     return {"sections": session["result"]["final_sections"]}

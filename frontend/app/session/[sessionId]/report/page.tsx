@@ -111,7 +111,23 @@ export default function ReportPage({
             </motion.div>
           )}
 
-          {report && (
+          {!isLoading && !error && report && report.sections.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-16 space-y-4"
+            >
+              <p className="text-muted-foreground">
+                This report is no longer available. It may have expired after a
+                recent update to the app.
+              </p>
+              <Button onClick={() => router.push('/')}>
+                Start a New Search
+              </Button>
+            </motion.div>
+          )}
+
+          {report && report.sections.length > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               <div className="lg:col-span-3 space-y-8">
                 <ReportHeader query={query} sections={report.sections} />
@@ -126,18 +142,14 @@ export default function ReportPage({
                   ))}
                 </div>
 
-                {report.sections.length > 0 && (
-                  <SourcesList
-                    sources={report.sections.flatMap((s) => s.sources)}
-                  />
-                )}
+                <SourcesList
+                  sources={report.sections.flatMap((s) => s.sources)}
+                />
               </div>
 
-              {report.sections.length > 0 && (
-                <div className="lg:col-span-1">
-                  <ReportTOC sections={report.sections} />
-                </div>
-              )}
+              <div className="lg:col-span-1">
+                <ReportTOC sections={report.sections} />
+              </div>
             </div>
           )}
         </div>
