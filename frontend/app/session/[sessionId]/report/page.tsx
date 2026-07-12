@@ -6,6 +6,7 @@ import { API_URL, API_HEADERS } from '@/lib/constants'
 import ReportHeader from '@/components/ReportHeader'
 import ReportSection from '@/components/ReportSection'
 import ReportTOC from '@/components/ReportTOC'
+import SourcesList from '@/components/SourcesList'
 
 export interface Section {
   heading: string
@@ -71,6 +72,8 @@ export default function ReportPage({
         .find((s: { sessionId: string }) => s.sessionId === sessionId)?.query || ''
     : ''
 
+  const allSources = sections.flatMap((s) => s.sources)
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -80,6 +83,7 @@ export default function ReportPage({
             {sections.map((section, idx) => (
               <ReportSection key={idx} section={section} sectionIndex={idx} />
             ))}
+            <SourcesList sources={allSources} />
           </div>
           <div className="hidden lg:block w-64 shrink-0">
             <ReportTOC sections={sections} />
