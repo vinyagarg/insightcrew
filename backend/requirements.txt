@@ -3,9 +3,8 @@ uvicorn
 langgraph
 langchain
 groq
-duckduckgo-search
+tavily-python
 chromadb
 python-dotenv
 pydantic
-tavily-python
 slowapi

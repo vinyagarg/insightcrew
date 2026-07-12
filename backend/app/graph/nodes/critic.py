@@ -1,4 +1,5 @@
-import os, json
+import os
+import json
 from groq import Groq
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -18,13 +19,12 @@ Rate confidence as "high" only if: (1) the main claims are backed by evidence, A
 (2) that evidence is clearly about the exact subject asked about.
 
 Rate "low" if the evidence is about a different or ambiguous entity than what was 
-asked, even if the text is well-written and well-cited to real sources — citing 
-real sources about the wrong subject is still an unreliable answer.
+asked, even if the text is well-written and well-cited to real sources.
 
 Rate "medium" if some evidence matches but is incomplete or partially uncertain 
 about the entity match.
 
-Respond ONLY with JSON: {{"confidence": "high"|"medium"|"low", "needs_revision": true|false}}
+Respond ONLY with JSON: {{"reasoning": "1-2 sentence explanation", "confidence": "high"|"medium"|"low", "needs_revision": true|false}}
 
 Text: {section['content']}
 

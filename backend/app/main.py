@@ -1,20 +1,23 @@
 from dotenv import load_dotenv
 load_dotenv()
+
+import os
 import uuid
-from fastapi import FastAPI
-from fastapi import Request
+from fastapi import FastAPI, Request, Header, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from app.graph.pipeline import build_pipeline
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+
+from app.graph.pipeline import build_pipeline
+
+app = FastAPI()
 
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -25,6 +28,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+API_SECRET_KEY = os.getenv("API_SECRET_KEY")
+
+def verify_api_key(x_api_key: str = Header(None)):
+    if not API_SECRET_KEY or x_api_key != API_SECRET_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+
 pipeline = build_pipeline()
 sessions = {}
 
@@ -33,7 +42,7 @@ class ResearchRequest(BaseModel):
 
 @app.post("/api/research")
 @limiter.limit("5/minute")
-def start_research(request: Request, req: ResearchRequest):
+def start_research(request: Request, req: ResearchRequest, _: None = Depends(verify_api_key)):
     session_id = str(uuid.uuid4())
     sessions[session_id] = {"status": "running", "result": None}
 
@@ -50,7 +59,7 @@ def start_research(request: Request, req: ResearchRequest):
     return {"session_id": session_id}
 
 @app.get("/api/research/{session_id}/status")
-def get_status(session_id: str):
+def get_status(session_id: str, _: None = Depends(verify_api_key)):
     session = sessions.get(session_id)
     if not session:
         return {"status": "error", "stages": []}
@@ -64,7 +73,7 @@ def get_status(session_id: str):
     return {"status": session["status"], "stages": stages}
 
 @app.get("/api/research/{session_id}/report")
-def get_report(session_id: str):
+def get_report(session_id: str, _: None = Depends(verify_api_key)):
     session = sessions.get(session_id)
     if not session or session["status"] != "done":
         return {"sections": []}

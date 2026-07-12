@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { API_URL } from '@/lib/constants'
+import { API_URL, API_HEADERS } from '@/lib/constants'
 import { useResearchHistory } from '@/hooks/useResearchHistory'
 
 interface SearchBarProps {
@@ -35,11 +35,14 @@ export default function SearchBar({ externalQuery }: SearchBarProps) {
     try {
       const response = await fetch(`${API_URL}/api/research`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: API_HEADERS,
         body: JSON.stringify({ query: query.trim() }),
       })
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('Too many requests. Please wait a moment and try again.')
+        }
         throw new Error('Failed to start research')
       }
 

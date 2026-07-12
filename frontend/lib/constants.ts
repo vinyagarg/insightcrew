@@ -1,4 +1,10 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+export const API_SECRET_KEY = process.env.NEXT_PUBLIC_API_SECRET_KEY || ''
+
+export const API_HEADERS = {
+  'Content-Type': 'application/json',
+  'X-API-Key': API_SECRET_KEY,
+}
 
 export const STORAGE_KEYS = {
   USER_NAME: 'insightcrew_user_name',
@@ -12,8 +18,8 @@ export const EXAMPLE_QUERIES = [
   'What are the environmental impacts of plastic production?',
 ]
 
-export const POLLING_INTERVAL = 2000 // 2 seconds
-export const POLLING_TIMEOUT = 60000 // 60 seconds
+export const POLLING_INTERVAL = 2000
+export const POLLING_TIMEOUT = 60000
 
 export const STAGE_LABELS = {
   planner: 'Planning',
