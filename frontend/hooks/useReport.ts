@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { API_URL } from '@/lib/constants'
+import { API_URL, API_HEADERS } from '@/lib/constants'
 
 export interface Citation {
   id: number
@@ -30,7 +30,7 @@ export function useReport(sessionId: string) {
         setIsLoading(true)
         const response = await fetch(`${API_URL}/api/research/${sessionId}/report`, {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
+          headers: API_HEADERS,
         })
 
         if (!response.ok) {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { API_URL, POLLING_INTERVAL, POLLING_TIMEOUT } from '@/lib/constants'
+import { API_URL, API_HEADERS, POLLING_INTERVAL, POLLING_TIMEOUT } from '@/lib/constants'
 
 export interface PipelineStage {
   name: 'planner' | 'retriever' | 'analyst' | 'critic'
@@ -30,7 +30,7 @@ export function usePolling(sessionId: string, enabled: boolean = true) {
 
       const response = await fetch(`${API_URL}/api/research/${sessionId}/status`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: API_HEADERS,
       })
 
       if (!response.ok) {
@@ -41,7 +41,6 @@ export function usePolling(sessionId: string, enabled: boolean = true) {
       setPipelineData(data)
       setError(null)
 
-      // Stop polling if done or error
       if (data.status === 'done' || data.status === 'error') {
         if (intervalRef.current) clearInterval(intervalRef.current)
       }
@@ -57,11 +56,7 @@ export function usePolling(sessionId: string, enabled: boolean = true) {
     if (!enabled || !sessionId) return
 
     startTimeRef.current = Date.now()
-    
-    // Initial poll
     poll()
-
-    // Set up interval
     intervalRef.current = setInterval(poll, POLLING_INTERVAL)
 
     return () => {
