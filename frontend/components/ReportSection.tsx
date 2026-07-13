@@ -21,7 +21,6 @@ export default function ReportSection({
   const citationMap = new Map(section.sources.map((src) => [src.id, src]))
   const confidenceStyle = CONFIDENCE_COLORS[section.confidence]
 
-  // Split into real paragraphs first (on blank lines), fall back to whole content as one paragraph
   const paragraphs = section.content
     .split(/\n\s*\n/)
     .map((p) => p.trim())
@@ -29,25 +28,36 @@ export default function ReportSection({
   const paragraphList = paragraphs.length > 0 ? paragraphs : [section.content]
 
   const renderParagraph = (paragraph: string, pIdx: number) => {
-    return paragraph.split(/(\[\d+\])/).map((part, idx) => {
-      const match = part.match(/\[(\d+)\]/)
+    return paragraph.split(/(\[[\d,\s]+\])/).map((part, idx) => {
+      const match = part.match(/^\[([\d,\s]+)\]$/)
       if (match) {
-        const citationId = parseInt(match[1]!, 10)
-        const source = citationMap.get(citationId)
-        if (!source) return null
+        const ids = match[1]!
+          .split(',')
+          .map((s) => parseInt(s.trim(), 10))
+          .filter((n) => !isNaN(n))
 
         return (
-          <CitationPopover
-            key={`${sectionIndex}-${pIdx}-${idx}`}
-            citationId={citationId}
-            source={source}
-            isSelected={selectedCitation === citationId}
-            onSelect={() =>
-              setSelectedCitation(
-                selectedCitation === citationId ? null : citationId
+          <span key={`${sectionIndex}-${pIdx}-${idx}`}>
+            {ids.map((citationId, i) => {
+              const source = citationMap.get(citationId)
+              if (!source) return null
+              return (
+                <span key={`${sectionIndex}-${pIdx}-${idx}-${citationId}`}>
+                  <CitationPopover
+                    citationId={citationId}
+                    source={source}
+                    isSelected={selectedCitation === citationId}
+                    onSelect={() =>
+                      setSelectedCitation(
+                        selectedCitation === citationId ? null : citationId
+                      )
+                    }
+                  />
+                  {i < ids.length - 1 && <span>, </span>}
+                </span>
               )
-            }
-          />
+            })}
+          </span>
         )
       }
       return part ? <span key={`${sectionIndex}-${pIdx}-${idx}`}>{part}</span> : null
