@@ -1,16 +1,15 @@
 import os
 import json
+import concurrent.futures
 from groq import Groq
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-def critic_node(state):
-    verified_sections = []
-    for section in state["draft_sections"]:
-        evidence_text = "\n".join(
-            f"[{s['id']}] {s['snippet']}" for s in section["sources"]
-        )
-        prompt = f"""Evaluate how well this text is supported by the evidence below, 
+def review_one(section):
+    evidence_text = "\n".join(
+        f"[{s['id']}] {s['snippet']}" for s in section["sources"]
+    )
+    prompt = f"""Evaluate how well this text is supported by the evidence below, 
 AND whether the evidence actually refers to the specific subject/entity named in 
 the original question (not a different or merely similarly-named person, place, 
 or thing).
@@ -31,18 +30,31 @@ Text: {section['content']}
 Evidence:
 {evidence_text}"""
 
+    try:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
         )
-        try:
-            result = json.loads(response.choices[0].message.content.strip())
-        except json.JSONDecodeError:
-            result = {"confidence": "medium", "needs_revision": False}
+        result = json.loads(response.choices[0].message.content.strip())
+    except Exception:
+        result = {"confidence": "medium", "needs_revision": False}
 
-        section["confidence"] = result.get("confidence", "medium")
-        verified_sections.append(section)
+    section["confidence"] = result.get("confidence", "medium")
+    return section
+
+def critic_node(state):
+    draft_sections = state["draft_sections"]
+    verified_sections = [None] * len(draft_sections)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        future_to_index = {
+            executor.submit(review_one, section): i
+            for i, section in enumerate(draft_sections)
+        }
+        for future in concurrent.futures.as_completed(future_to_index):
+            idx = future_to_index[future]
+            verified_sections[idx] = future.result()
 
     return {**state, "final_sections": verified_sections,
             "revision_count": state.get("revision_count", 0) + 1}

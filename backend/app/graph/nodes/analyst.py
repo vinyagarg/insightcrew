@@ -1,15 +1,14 @@
 import os
+import concurrent.futures
 from groq import Groq
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-def analyst_node(state):
-    draft_sections = []
-    for q, sources in state["evidence"].items():
-        evidence_text = "\n".join(
-            f"[{s['id']}] {s['title']}: {s['snippet']}" for s in sources
-        )
-        prompt = f"""Using the evidence below, write a thorough, accurate, and 
+def analyze_one(q, sources):
+    evidence_text = "\n".join(
+        f"[{s['id']}] {s['title']}: {s['snippet']}" for s in sources
+    )
+    prompt = f"""Using the evidence below, write a thorough, accurate, and 
 well-structured answer to this question in clear, plain, everyday language.
 
 STRUCTURE (follow this internally, but write as natural flowing prose, not as a 
@@ -43,18 +42,34 @@ Question: {q}
 Evidence:
 {evidence_text}"""
 
+    try:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.2,
         )
         content = response.choices[0].message.content.strip()
+    except Exception:
+        content = "Unable to generate an answer for this question due to a processing error."
 
-        draft_sections.append({
-            "heading": q,
-            "content": content,
-            "confidence": "medium",
-            "sources": sources,
-        })
+    return {
+        "heading": q,
+        "content": content,
+        "confidence": "medium",
+        "sources": sources,
+    }
+
+def analyst_node(state):
+    evidence_items = list(state["evidence"].items())
+    draft_sections = [None] * len(evidence_items)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        future_to_index = {
+            executor.submit(analyze_one, q, sources): i
+            for i, (q, sources) in enumerate(evidence_items)
+        }
+        for future in concurrent.futures.as_completed(future_to_index):
+            idx = future_to_index[future]
+            draft_sections[idx] = future.result()
 
     return {**state, "draft_sections": draft_sections}
