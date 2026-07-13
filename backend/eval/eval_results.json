@@ -1,0 +1,149 @@
+{
+  "summary": {
+    "total_queries": 10,
+    "successful": 10,
+    "failed": 0,
+    "average_latency_seconds": 36.81,
+    "total_sections_generated": 50,
+    "confidence_distribution": {
+      "high": 5,
+      "medium": 32,
+      "low": 13,
+      "high_confidence_rate": 0.1
+    },
+    "sections_missing_citations": 28,
+    "citation_coverage_rate": 0.44
+  },
+  "results": [
+    {
+      "query": "How does photosynthesis work?",
+      "status": "success",
+      "latency_seconds": 13.04,
+      "num_sections": 5,
+      "confidence_breakdown": {
+        "high": 3,
+        "medium": 2,
+        "low": 0
+      },
+      "total_citations": 38,
+      "sections_with_no_citations": 0
+    },
+    {
+      "query": "What are the latest breakthroughs in quantum computing?",
+      "status": "success",
+      "latency_seconds": 39.71,
+      "num_sections": 5,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      },
+      "total_citations": 15,
+      "sections_with_no_citations": 3
+    },
+    {
+      "query": "How is artificial intelligence transforming healthcare?",
+      "status": "success",
+      "latency_seconds": 34.82,
+      "num_sections": 5,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      },
+      "total_citations": 14,
+      "sections_with_no_citations": 3
+    },
+    {
+      "query": "What are the environmental impacts of plastic production?",
+      "status": "success",
+      "latency_seconds": 36.76,
+      "num_sections": 5,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      },
+      "total_citations": 17,
+      "sections_with_no_citations": 3
+    },
+    {
+      "query": "What are the key differences between AI researchers and quantitative researchers?",
+      "status": "success",
+      "latency_seconds": 41.25,
+      "num_sections": 5,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      },
+      "total_citations": 15,
+      "sections_with_no_citations": 3
+    },
+    {
+      "query": "How does climate change affect ocean ecosystems?",
+      "status": "success",
+      "latency_seconds": 45.37,
+      "num_sections": 5,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      },
+      "total_citations": 18,
+      "sections_with_no_citations": 3
+    },
+    {
+      "query": "What is the current state of renewable energy adoption?",
+      "status": "success",
+      "latency_seconds": 40.67,
+      "num_sections": 5,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 3,
+        "low": 1
+      },
+      "total_citations": 17,
+      "sections_with_no_citations": 2
+    },
+    {
+      "query": "How do vaccines work at a biological level?",
+      "status": "success",
+      "latency_seconds": 44.81,
+      "num_sections": 5,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 3,
+        "low": 1
+      },
+      "total_citations": 16,
+      "sections_with_no_citations": 3
+    },
+    {
+      "query": "What are the main causes of inflation in an economy?",
+      "status": "success",
+      "latency_seconds": 44.47,
+      "num_sections": 5,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      },
+      "total_citations": 12,
+      "sections_with_no_citations": 3
+    },
+    {
+      "query": "How is blockchain technology used outside of cryptocurrency?",
+      "status": "success",
+      "latency_seconds": 27.25,
+      "num_sections": 5,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      },
+      "total_citations": 0,
+      "sections_with_no_citations": 5
+    }
+  ]
+}

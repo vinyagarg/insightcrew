@@ -1,60 +1,39 @@
 import os
 import json
-import concurrent.futures
 from groq import Groq
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-def review_one(section):
-    evidence_text = "\n".join(
-        f"[{s['id']}] {s['snippet']}" for s in section["sources"]
-    )
-    prompt = f"""Evaluate how well this text is supported by the evidence below, 
-AND whether the evidence actually refers to the specific subject/entity named in 
-the original question (not a different or merely similarly-named person, place, 
-or thing).
+def critic_node(state):
+    verified_sections = []
+    for section in state["draft_sections"]:
+        evidence_text = "\n".join(
+            f"[{s['id']}] {s['snippet']}" for s in section["sources"]
+        )
+        prompt = f"""Evaluate how well this text is supported by the evidence, and 
+whether the evidence matches the subject of the question. Rate "high" only if 
+claims are backed and evidence matches the subject. Rate "low" if evidence is 
+about a different subject. Rate "medium" otherwise.
 
-Rate confidence as "high" only if: (1) the main claims are backed by evidence, AND 
-(2) that evidence is clearly about the exact subject asked about.
-
-Rate "low" if the evidence is about a different or ambiguous entity than what was 
-asked, even if the text is well-written and well-cited to real sources.
-
-Rate "medium" if some evidence matches but is incomplete or partially uncertain 
-about the entity match.
-
-Respond ONLY with JSON: {{"reasoning": "1-2 sentence explanation", "confidence": "high"|"medium"|"low", "needs_revision": true|false}}
+Respond ONLY with JSON: {{"confidence": "high"|"medium"|"low", "needs_revision": true|false}}
 
 Text: {section['content']}
 
 Evidence:
 {evidence_text}"""
 
-    try:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
         )
-        result = json.loads(response.choices[0].message.content.strip())
-    except Exception:
-        result = {"confidence": "medium", "needs_revision": False}
+        try:
+            result = json.loads(response.choices[0].message.content.strip())
+        except json.JSONDecodeError:
+            result = {"confidence": "medium", "needs_revision": False}
 
-    section["confidence"] = result.get("confidence", "medium")
-    return section
-
-def critic_node(state):
-    draft_sections = state["draft_sections"]
-    verified_sections = [None] * len(draft_sections)
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-        future_to_index = {
-            executor.submit(review_one, section): i
-            for i, section in enumerate(draft_sections)
-        }
-        for future in concurrent.futures.as_completed(future_to_index):
-            idx = future_to_index[future]
-            verified_sections[idx] = future.result()
+        section["confidence"] = result.get("confidence", "medium")
+        verified_sections.append(section)
 
     return {**state, "final_sections": verified_sections,
             "revision_count": state.get("revision_count", 0) + 1}
